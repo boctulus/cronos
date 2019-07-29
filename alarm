@@ -35,7 +35,7 @@ t_futuro=$(echo $fecha | awk -v hora="$cuando" '{print $1, $2, hora,  $4, $5}')
 date_ant=$(date +"%Y%m%d%H%M" -d "$t_futuro -$tm_ant min")
 date_jst=$(date +"%Y%m%d%H%M" -d "$t_futuro")
 
-# sin uso hasta ahora:
+# Fecha en el futuro
 date_dsp=$(date +"%Y%m%d%H%M" -d "$t_futuro +$tm_dsp min") 
       
 # Posibilito que la alarma se dispare antes
