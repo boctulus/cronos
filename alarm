@@ -1,0 +1,96 @@
+#!/bin/bash
+
+#
+# Alarma
+#
+# Ej de uso:
+#
+# nohup alarm 16:05 Dragon Ball &  
+#
+
+tm_ant=5 		# margen inferior
+tm_dsp=5		# margen superior
+tm_rep=5 		# tiempo para repetición
+tm_dismiss=60   # 1 hora
+
+cuando="$1" 
+shift
+text="$@"
+
+
+# Hoy o mañana 
+now=$(date +%H:%M)
+
+if [[ "$cuando" > "$now" ]]; then
+	set -- $(date)
+else
+	set -- $(date -d "next day")
+fi
+
+
+shift; fecha="$@"
+#echo "$fecha"
+
+t_futuro=$(echo $fecha | awk -v hora="$cuando" '{print $1, $2, hora,  $4, $5}')
+date_ant=$(date +"%Y%m%d%H%M" -d "$t_futuro -$tm_ant min")
+date_jst=$(date +"%Y%m%d%H%M" -d "$t_futuro")
+
+# sin uso hasta ahora:
+date_dsp=$(date +"%Y%m%d%H%M" -d "$t_futuro +$tm_dsp min") 
+      
+# Posibilito que la alarma se dispare antes
+date_jst=$date_ant
+
+ahora=$(date +"%Y%m%d%H%M"); 
+
+if [[ ! "$ahora" < "$date_jst" ]]; then
+	zenity --question \
+		    --title="Alarma" \
+		    --text "<span foreground=\"#ccc\" font=\"30\">Es para mañana?</span>" \
+		    --timeout="$(($tm_dismiss * 60))" \
+		    --ok-label="Si" \
+		    --cancel-label="No" \
+		    --icon-name="clock" \
+		  	--window-icon="/usr/share/icons/Mint-X/apps/16/clock.png" \
+		    2>/dev/null
+
+	if [[ $? -eq 0 ]]; then
+		date_jst=$(date -d  "+1 day -5 min")
+		#echo Programada para $date_jst
+	else 
+		zenity --info \
+		    --title="Alarma" \
+		    --text "<span foreground=\"#ccc\" font=\"30\">Abortando ...</span>" \
+		    --timeout=3 \
+		    --ok-label="Ok" \
+		    --icon-name="clock" \
+		  	--window-icon="/usr/share/icons/Mint-X/apps/16/clock.png" \
+		    2>/dev/null
+	fi	
+fi	
+
+while [[ "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_dsp" ]]; do
+	ahora=$(date +"%Y%m%d%H%M")
+	#echo "Ahora: $ahora y esperando que sea $date_jst"
+
+	if [[ ! "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_dsp" ]]; then
+		zenity --question \
+		    --title="Alarma" \
+		    --text "<span foreground=\"#ccc\" font=\"32\">$text</span>" \
+		    --timeout="$(($tm_dismiss * 60))" \
+		    --ok-label="Cerrar" \
+		    --cancel-label="Volverme a recordar" \
+		    --icon-name="clock" \
+		  	--window-icon="/usr/share/icons/Mint-X/apps/16/clock.png" \
+		    2>/dev/null
+
+		[[ $? -eq 1 ]] && date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") || exit 0
+	fi
+
+	sleep 59
+done
+
+#echo Fin
+
+	
+
