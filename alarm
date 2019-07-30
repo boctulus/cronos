@@ -18,11 +18,11 @@ tm_dismiss=60   # 1 hora
 
 dialogo () {
 	zenity --question \
-			    --title="Alarma" \
+			    --title="Alarm" \
 			    --text "<span foreground=\"#ccc\" font=\"32\">$text</span>" \
 			    --timeout="$(($tm_dismiss * 60))" \
-			    --ok-label="Cerrar" \
-			    --cancel-label="Recordar en 5 min" \
+			    --ok-label="Finish" \
+			    --cancel-label="Snooze" \
 			    --icon-name="clock" \
 			  	--window-icon="clock.png" \
 			    2>/dev/null
@@ -89,10 +89,10 @@ _alarm () {
 
 	if [[ ! "$ahora" < "$date_jst" ]]; then
 		zenity --question \
-			    --title="Alarma" \
-			    --text "<span foreground=\"#ccc\" font=\"30\">Es para mañana?</span>" \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"30\">Tomorrow?</span>" \
 			    --timeout="$(($tm_dismiss * 60))" \
-			    --ok-label="Si" \
+			    --ok-label="Yes" \
 			    --cancel-label="No" \
 			    --icon-name="clock" \
 			  	--window-icon="clock.png" \
@@ -104,8 +104,8 @@ _alarm () {
 			#echo Programada para $date_jst
 		else 
 			zenity --info \
-			    --title="Alarma" \
-			    --text "<span foreground=\"#ccc\" font=\"30\">Abortando ...</span>" \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"30\">Aborting ...</span>" \
 			    --timeout=3 \
 			    --ok-label="Ok" \
 			    --icon-name="clock" \
