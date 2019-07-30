@@ -42,24 +42,24 @@ _alarm () {
 			cuando="$1"
 			shift 2
 			comando="$@"
-			echo "Cuando: $cuando"
-			echo "Ejecutando $comando"	
+			#echo "Cuando: $cuando"
+			#echo "Ejecutando $comando"	
 		;;
 		script)
 			type="$1"; shift
 			cuando="$1"
 			shift 2
 			file="$@"
-			echo "Cuando: $cuando"
-			echo "Ejecutando script $file"
+			#echo "Cuando: $cuando"
+			#echo "Ejecutando script $file"
 		;;
 		*)
 			cuando="$1"
 			shift
 			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
 			text="$@"
-			echo "Cuando: $cuando"
-			echo "Texto: $text"
+			#echo "Cuando: $cuando"
+			#echo "Texto: $text"
 		;;
 	esac
 	
