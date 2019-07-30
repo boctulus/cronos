@@ -36,20 +36,32 @@ _alarm () {
 	local text
 	local type
 
-	if [[ "$1" == "#command" ]]; then
-		type="$1"; shift
-		cuando="$1"
-		shift 2
-		comando="$@"
-		echo "Cuando: $cuando"
-		echo "Ejecutando $comando"	
-	else
-		cuando="$1"
-		shift 2
-		text="$@"
-		echo "Cuando: $cuando"
-		echo "Texto: $text"
-	fi 
+	case $1 in
+		command)
+			type="$1"; shift
+			cuando="$1"
+			shift 2
+			comando="$@"
+			echo "Cuando: $cuando"
+			echo "Ejecutando $comando"	
+		;;
+		script)
+			type="$1"; shift
+			cuando="$1"
+			shift 2
+			file="$@"
+			echo "Cuando: $cuando"
+			echo "Ejecutando script $file"
+		;;
+		*)
+			cuando="$1"
+			shift
+			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
+			text="$@"
+			echo "Cuando: $cuando"
+			echo "Texto: $text"
+		;;
+	esac
 	
 	# Hoy o mañana 
 	now=$(date +%H:%M)
@@ -117,7 +129,21 @@ _alarm () {
 			if [[ ! "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_dsp" ]]; then  
 				echo "Siendo $ahora se dispara *** "
 
-				if [[ "$type" == "#command" ]]; then
+				case $type in
+					command)
+						bash -c "$comando"
+						exit
+					;;
+					script)
+						source "$file"
+						exit
+					;;
+					*)
+						dialogo
+						;; 
+				esac
+
+				if [[ "$type" == "_command" ]]; then
 					bash -c "$comando"
 					exit
 				else	
@@ -137,7 +163,7 @@ options ()
 	help=$(cat <<-TEXT
 
 	Usage:
-	 $(basename $0) <time> <options> -t <text> 
+	 $(basename $0) <time> <options> [-t] <text> 
 	 $(basename $0) <time> <options> -c <command> 
 	 $(basename $0) <time> <options> -f <script file> 
 
@@ -145,10 +171,12 @@ options ()
 
 	Options:
 	 -v, --verbose                  show detailed information
-	 -m, --mute                     no sound 
+	 -m, --mute                     no sound (not implemented)
 	 
 	 -t, --text                     text for alarm
 	 -c, --command                  command to be executed
+	 -f, --file                     script file
+	 -s, --script                   same as -f
 	 
 	 -h, --help                     display this help
 	 -V, --version                  display version
@@ -167,7 +195,7 @@ TEXT
 
 	case "$1" in
 	-V|--version)
-	  	echo "$(basename $0) version $ver"
+	  	echo "$(basename $0) version $version"
 	  	return
 		;;
 	-h|--help)
@@ -176,15 +204,19 @@ TEXT
 		;;
 	[0-9][0-9]:[0-9][0-9])
 		case "$2" in
-			-c|command)
-			_alarm "#command" "$@"
+			-c|--command|--cmd)
+			_alarm "command" "$@"
 			shift
 			;;
-			-t|text)
+			-f|--file|-s|--script)
+			_alarm "script" "$@"
+			shift
+			;;
+			-t|--text)
 			_alarm "$@"
 			;;
 			*)
-			echo 'Unrecognized option'
+			_alarm "$@"
 		esac
 		;;		
 	*)		

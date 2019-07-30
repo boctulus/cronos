@@ -7,10 +7,29 @@ Features:
 * Snooze alarm
 * Easy to use
 
-Example:
+
+Usage:
+
+	Schedule a task or create an alarm
+
+	Options:
+	 -v, --verbose                  show detailed information
+	 -m, --mute                     no sound (not implemented)
+	 
+	 -t, --text                     text for alarm
+	 -c, --command                  command to be executed
+	 -f, --file                     script file
+	 -s, --script                   same as -f
+	 
+	 -h, --help                     display this help
+	 -V, --version                  display version
+
+Examples:
 
     nohup alarm 23:00 Dragon Ball &
- 
+    nohup alarm 10:30 -c command &
+    nohup alarm 10:30 -f some_script.sh &
+
 
 How it works
 
