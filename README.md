@@ -1,6 +1,6 @@
 # shalarm
 
-Alarm in Bash with GTK interface
+Schedule a task or create an alarm
 
 Features:
 
@@ -10,7 +10,9 @@ Features:
 
 Usage:
 
-	Schedule a task or create an alarm
+	 alarm <time> <options> [-t] <text> 
+	 alarm <time> <options> -c <command> 
+	 alarm <time> <options> -f <script file> 
 
 	Options:
 	 -v, --verbose                  show detailed information
@@ -23,6 +25,9 @@ Usage:
 	 
 	 -h, --help                     display this help
 	 -V, --version                  display version
+
+	 Time format is HH:MM
+	 
 
 Examples:
 
