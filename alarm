@@ -59,18 +59,18 @@ TEXT
 	[0-9][0-9]:[0-9][0-9]|[0-9]:[0-9][0-9])
 		case "$2" in
 			-c|--command|--cmd)
-			nohup ./resident "command" "$@" >/dev/null 2>&1 &
+			nohup ./alarm_resident "command" "$@" >/dev/null 2>&1 &
 			shift
 			;;
 			-f|--file|-s|--script)
-			nohup ./resident "script" "$@" >/dev/null 2>&1 &
+			nohup ./alarm_resident "script" "$@" >/dev/null 2>&1 &
 			shift
 			;;
 			-t|--text)
-			nohup ./resident "$@" >/dev/null 2>&1 &
+			nohup ./alarm_resident "$@" >/dev/null 2>&1 &
 			;;
 			*)
-			nohup ./resident "$@" >/dev/null 2>&1 &
+			nohup ./alarm_resident "$@" >/dev/null 2>&1 &
 		esac
 		;;		
 	*)		

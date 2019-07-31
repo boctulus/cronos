@@ -31,9 +31,11 @@ Usage:
 
 Examples:
 
-    nohup alarm 23:00 Dragon Ball &
-    nohup alarm 10:30 -c command &
-    nohup alarm 10:30 -f some_script.sh &
+    alarm 23:00 Dragon Ball
+    alarm 23:45 -f some_script.sh
+    alarm 10:30 -c some_command
+    alarm 12:15 -c 'command1 && command2'
+    alarm 12:15 -c 'command > output.txt'
 
 
 How it works

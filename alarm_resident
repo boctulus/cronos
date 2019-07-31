@@ -116,11 +116,11 @@ _alarm () {
 
 			case $type in
 				command)
-					exec bash -c "$comando"
+					bash -c "$comando"
 					exit
 				;;
 				script)
-					exec source "$file"
+					source "$file"
 					exit
 				;;
 				*)
