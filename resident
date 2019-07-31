@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# Valores por defecto
+source shalarm.conf
+
+dialogo () {
+	zenity --question \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"32\">$text</span>" \
+			    --timeout="$(($tm_dismiss * 60))" \
+			    --ok-label="Finish" \
+			    --cancel-label="Snooze" \
+			    --icon-name="clock" \
+			  	--window-icon="clock.png" \
+			    2>/dev/null
+
+	[[ $? -eq 1 ]] && date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") || exit 0
+}
+
+_alarm () {
+	local cuando
+	local comando
+	local text
+	local type
+
+	case $1 in
+		command)
+			type="$1"; shift
+			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			shift 2
+			comando="$@"
+			echo "Cuando: $cuando"
+			echo "Ejecutando $comando"	
+		;;
+		script)
+			type="$1"; shift
+			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			shift 2
+			file="$@"
+			echo "Cuando: $cuando"
+			echo "Ejecutando script $file"
+		;;
+		*)
+			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			shift
+			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
+			text="$@"
+			echo "Cuando: $cuando"
+			echo "Texto: $text"
+		;;
+	esac
+	
+	# Hoy o mañana 
+	now=$(date +%H:%M)
+
+
+	if [[ "$cuando" > "$now" ]]; then
+		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
+		
+		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha -$tm_ant min")
+		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +$tm_dsp min") 		
+	else
+		# necesito sumar 1 día
+		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
+
+		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha +1 day -$tm_ant min")
+		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +1 day +$tm_dsp min")	
+	fi
+
+
+	# Posibilito que la alarma se dispare antes
+	date_jst=$date_ant
+
+	ahora=$(date +"%Y%m%d%H%M"); 
+
+	if [[ ! "$ahora" < "$date_jst" ]]; then
+		zenity --question \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"30\">Tomorrow?</span>" \
+			    --timeout="$(($tm_dismiss * 60))" \
+			    --ok-label="Yes" \
+			    --cancel-label="No" \
+			    --icon-name="clock" \
+			  	--window-icon="clock.png" \
+			  	--height=150 --width=200 \
+			    2>/dev/null
+
+		if [[ $? -eq 0 ]]; then
+			date_jst=$(date -d  "+1 day -5 min")
+			#echo Programada para $date_jst
+		else 
+			zenity --info \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"30\">Aborting ...</span>" \
+			    --timeout=3 \
+			    --ok-label="Ok" \
+			    --icon-name="clock" \
+			  	--window-icon="clock.png" \
+			  	--height=150 --width=200 \
+			    2>/dev/null
+
+			    exit
+		fi	
+	fi	
+
+	#echo \$date_dsp = "$date_dsp"
+	#echo \$date_jst = "$date_jst"
+
+	while [[ "$ahora" < "$date_jst" ]]; do
+		ahora=$(date +"%Y%m%d%H%M")
+		#echo "Ahora: $(date +"%Y-%m-%d %H:%M") y esperando que sea $date_jst"
+		#echo "Maximo para ejecucion: $date_dsp"
+
+		if [[ ! "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_dsp" ]]; then  
+			#echo "Siendo $ahora se dispara *** "
+
+			case $type in
+				command)
+					exec bash -c "$comando"
+					exit
+				;;
+				script)
+					exec source "$file"
+					exit
+				;;
+				*)
+					dialogo
+					;; 
+			esac
+
+			if [[ "$type" == "_command" ]]; then
+				bash -c "$comando"
+				exit
+			else	
+				dialogo
+			fi
+		fi
+
+		sleep 59
+	done  
+
+}
+
+_alarm "$@"
