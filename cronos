@@ -1,0 +1,101 @@
+#!/bin/bash
+
+
+version=0.21
+
+
+options () 
+{
+	help=$(cat <<-TEXT
+	Usage:
+	    $(basename $0) <time> <options> [-t] <text> 
+	    $(basename $0) <time> <options> -c <command> 
+	    $(basename $0) <time> <options> -f <script file> 
+
+	Schedule a task or create an alarm
+	
+	Options:
+	 -v, --verbose                  show detailed information
+	 -m, --mute                     no sound (not implemented)
+	 
+	 -t, --text                     text for alarm
+	 -c, --command                  command to be executed
+	 -f, --file                     script file
+	 -s, --script                   same as -f
+	 
+	 -h, --help                     display this help
+	 -V, --version                  display version
+TEXT
+)
+
+	case "$1" in
+	-V|--version)
+	  	echo "$(basename $0) version $version"
+	  	return
+		;;
+	-h|--help)
+		echo -e "$help"
+		return
+		;;
+	[0-9][0-9]:[0-9][0-9]|[0-9]:[0-9][0-9])
+		case "$2" in
+			-c|--command|--cmd)
+			nohup ./cronosd "command" "$@" >/dev/null 2>&1 &
+			shift
+			cat < /tmp/cronosp
+			;;
+			-f|--file|-s|--script)
+			nohup ./cronosd "script" "$@" >/dev/null 2>&1 &
+			shift
+			cat < /tmp/cronosp
+			;;
+			-t|--text)
+			nohup ./cronosd "$@" >/dev/null 2>&1 &
+			cat < /tmp/cronosp
+			;;
+			*)
+			nohup ./cronosd "$@" >/dev/null 2>&1 &
+			cat < /tmp/cronosp
+		esac
+		;;		
+	*)		
+		if [[ $# -eq 0 ]]; then
+			echo -e "$help"
+		else
+			echo -e "$(basename $0): Unrecognized option '$1'\nTry '$(basename $0) --help' for more information";
+		fi 
+		return
+		;;
+	esac
+}
+
+
+# Creo tubería nombrada
+
+[[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp
+
+
+case "$2" in 
+	AM)
+		p1="$1"
+		shift 2
+		resto="$@"
+		params=($p1 ${resto[@]})
+		options ${params[@]}
+	;;
+	PM)
+		p1="$1"
+		hh=$(echo $1 | cut -d: -f1)
+		mm=$(echo $1 | cut -d: -f2)
+
+		shift 2
+		resto="$@"
+		params=("$(($hh+12)):$mm" ${resto[@]})
+
+		options ${params[@]}
+		;;
+	*)
+		options "$@"	
+esac
+
+

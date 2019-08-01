@@ -1,0 +1,185 @@
+#!/bin/bash
+
+#
+# Default values
+#
+source cronos.conf
+
+LANG=en_us_88591
+
+#
+# Globals
+#
+declare -a msg
+
+
+push () {
+	msg=("${msg[@]}" "$1")
+}
+
+sendmsg () {
+	for m in "${msg[@]}"; do
+		echo -e "$m " > /tmp/cronosp
+	done
+
+	[[ ${#msg[@]} -eq 0 ]] && echo -e "\n" > /tmp/cronosp
+}
+
+dialogo () {
+	zenity --question \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"32\">$text</span>" \
+			    --timeout="$(($tm_dismiss * 60))" \
+			    --ok-label="Finish" \
+			    --cancel-label="Snooze" \
+			    --icon-name="clock" \
+			  	--window-icon="clock.png" \
+			    2>/dev/null
+
+	[[ $? -eq 1 ]] && date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") || exit 0
+}
+
+function time_diff() {
+	d1=$(date -u -d "$1" +"%s")
+	d2=$(date -u -d "$2" +"%s")
+
+	date -u -d "0 $d2 sec - $d1 sec" +"%H:%M:%S"
+}
+
+_alarm () {
+	local cuando
+	local comando
+	local text
+	local type
+
+	case $1 in
+		command)
+			type="$1"; shift
+			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			shift 2
+			comando="$@"
+			#push "When: $cuando"
+			push "Command: $comando"	
+		;;
+		script)
+			type="$1"; shift
+			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			shift 2
+			file="$@"
+			#push "When: $cuando"
+			push "Script: script $file"
+		;;
+		*)
+			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			shift
+			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
+			text="$@"
+			#push "When: $cuando"
+			push "Alarm text: $text"
+		;;
+	esac
+
+	cuando=${cuando/24:/00:}
+	_ahora=$(date | cut -d' ' -f2-)
+	
+
+	# Hoy o mañana 
+	now=$(date +%H:%M)
+
+	if [[ "$cuando" > "$now" ]]; then
+		day="today"
+		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
+		
+		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha -$tm_ant min")
+		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +$tm_dsp min") 
+		_hasta=$(date -d "$fecha -$tm_ant min" | cut -f 2- -d ' ') 	
+	else
+		# necesito sumar 1 día
+		day="tomorrow"
+		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
+
+		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha +1 day -$tm_ant min")
+		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +1 day +$tm_dsp min")
+		_hasta=$(date -d "$fecha +1 day -$tm_ant min" | cut -d' ' -f2-)
+	fi
+
+
+	# Posibilito que la alarma se dispare antes
+	date_jst=$date_ant
+
+	ahora=$(date +"%Y%m%d%H%M"); 
+
+
+	if [[ ! "$ahora" < "$date_jst" ]]; then
+		zenity --question \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"30\">Tomorrow?</span>" \
+			    --timeout="$(($tm_dismiss * 60))" \
+			    --ok-label="Yes" \
+			    --cancel-label="No" \
+			    --icon-name="clock" \
+			  	--window-icon="clock.png" \
+			  	--height=150 --width=200 \
+			    2>/dev/null
+
+		if [[ $? -eq 0 ]]; then
+			date_jst=$(date -d  "+1 day -5 min")
+			#echo Programada para $date_jst
+		else 
+			zenity --info \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"30\">Aborting ...</span>" \
+			    --timeout=3 \
+			    --ok-label="Ok" \
+			    --icon-name="clock" \
+			  	--window-icon="clock.png" \
+			  	--height=150 --width=200 \
+			    2>/dev/null
+
+			    exit
+		fi	
+	fi	
+
+
+	#####################################
+	diff=$(time_diff "$_ahora" "$_hasta")
+
+	#push "$_ahora ][ $_hasta"
+	push "Time to accomplish: $day in $diff"
+	sendmsg
+	#####################################
+
+
+	#echo \$date_dsp = "$date_dsp"
+	#echo \$date_jst = "$date_jst"
+
+	while [[ "$ahora" < "$date_jst" ]]; do
+		ahora=$(date +"%Y%m%d%H%M")
+		#echo "Ahora: $(date +"%Y-%m-%d %H:%M") y esperando que sea $date_jst"
+		#echo "Maximo para ejecucion: $date_dsp"
+
+		if [[ ! "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_dsp" ]]; then  
+			#echo "Siendo $ahora se dispara *** "
+
+			case $type in
+				command)
+					bash -c "$comando"
+					exit
+				;;
+				script)
+					source "$file"
+					exit
+				;;
+				*)
+					dialogo
+				;; 
+			esac
+		fi
+
+		sleep 59
+	done  
+
+}
+
+	
+_alarm "$@"
