@@ -38,23 +38,27 @@ TEXT
 		return
 		;;
 	[0-9][0-9]:[0-9][0-9]|[0-9]:[0-9][0-9])
+		local real=$(realpath $0)
+		local base=$(dirname $real)
+		residente="$base/cronosd"
+
 		case "$2" in
 			-c|--command|--cmd)
-			nohup ./cronosd "command" "$@" >/dev/null 2>&1 &
+			nohup $residente "command" "$@" >/dev/null 2>&1 &
 			shift
 			cat < /tmp/cronosp
 			;;
 			-f|--file|-s|--script)
-			nohup ./cronosd "script" "$@" >/dev/null 2>&1 &
+			nohup $residente "script" "$@" >/dev/null 2>&1 &
 			shift
 			cat < /tmp/cronosp
 			;;
 			-t|--text)
-			nohup ./cronosd "$@" >/dev/null 2>&1 &
+			nohup $residente "$@" >/dev/null 2>&1 &
 			cat < /tmp/cronosp
 			;;
 			*)
-			nohup ./cronosd "$@" >/dev/null 2>&1 &
+			nohup $residente "$@" >/dev/null 2>&1 &
 			cat < /tmp/cronosp
 		esac
 		;;		

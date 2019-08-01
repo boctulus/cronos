@@ -1,17 +1,14 @@
 #!/bin/bash
 
-#
-# Default values
-#
-source cronos.conf
-
 LANG=en_us_88591
 
-#
-# Globals
-#
 declare -a msg
 
+loadconf () {
+	local real=$(realpath $0)
+	local base=$(dirname $real)
+	source $base/cronos.conf
+}
 
 push () {
 	msg=("${msg[@]}" "$1")
@@ -174,5 +171,10 @@ _alarm () {
 }
 
 
-	
+#
+# Load default values
+#
+loadconf
+
+
 _alarm "$@"
