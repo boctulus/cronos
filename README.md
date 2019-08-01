@@ -1,4 +1,4 @@
-# shalarm
+# cronos
 
 Schedule a task or create an alarm
 
