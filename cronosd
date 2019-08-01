@@ -18,11 +18,13 @@ push () {
 }
 
 sendmsg () {
+	(dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null 2>&1
+
 	for m in "${msg[@]}"; do
 		echo -e "$m " > /tmp/cronosp
 	done
 
-	[[ ${#msg[@]} -eq 0 ]] && echo -e "\n" > /tmp/cronosp
+	[[ ${#msg[@]} -eq 0 ]] && echo " " > /tmp/cronosp
 }
 
 dialogo () {
@@ -36,7 +38,7 @@ dialogo () {
 			  	--window-icon="clock.png" \
 			    2>/dev/null
 
-	[[ $? -eq 1 ]] && date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") || exit 0
+	[[ $? -eq 1 ]] && date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") || { push "Cronos has finish"; sendmsg; exit 0; }
 }
 
 function time_diff() {
@@ -126,17 +128,9 @@ _alarm () {
 			date_jst=$(date -d  "+1 day -5 min")
 			#echo Programada para $date_jst
 		else 
-			zenity --info \
-			    --title="Alarm" \
-			    --text "<span foreground=\"#ccc\" font=\"30\">Aborting ...</span>" \
-			    --timeout=3 \
-			    --ok-label="Ok" \
-			    --icon-name="clock" \
-			  	--window-icon="clock.png" \
-			  	--height=150 --width=200 \
-			    2>/dev/null
-
-			    exit
+			    push "Aborted ***"
+			    sendmsg	
+			    exit 1
 		fi	
 	fi	
 
@@ -148,7 +142,6 @@ _alarm () {
 	push "Time to accomplish: $day in $diff"
 	sendmsg
 	#####################################
-
 
 	#echo \$date_dsp = "$date_dsp"
 	#echo \$date_jst = "$date_jst"
@@ -164,11 +157,11 @@ _alarm () {
 			case $type in
 				command)
 					bash -c "$comando"
-					exit
+					exit 0
 				;;
 				script)
 					source "$file"
-					exit
+					exit 0
 				;;
 				*)
 					dialogo
@@ -178,8 +171,8 @@ _alarm () {
 
 		sleep 59
 	done  
-
 }
+
 
 	
 _alarm "$@"

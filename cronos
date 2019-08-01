@@ -72,12 +72,15 @@ TEXT
 
 # Creo tubería nombrada
 
-[[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp
-
+[[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp || (dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null 2>&1
 
 case "$2" in 
 	AM)
 		p1="$1"
+		hh=$(echo $1 | cut -d: -f1)
+
+		[[ $hh -gt 12 ]] && { echo "$(basename $0): invalid time format !"; exit 1; }
+
 		shift 2
 		resto="$@"
 		params=($p1 ${resto[@]})
@@ -87,6 +90,8 @@ case "$2" in
 		p1="$1"
 		hh=$(echo $1 | cut -d: -f1)
 		mm=$(echo $1 | cut -d: -f2)
+
+		[[ $hh -gt 12 ]] && { echo "$(basename $0): invalid time format !"; exit 1; }
 
 		shift 2
 		resto="$@"
