@@ -9,7 +9,7 @@
 #
 #
 
-version=0.1
+version=0.2
 
 
 options () 
@@ -37,15 +37,6 @@ options ()
 
 TEXT
 )
-
-	verbose=
-
-	case "$1" in
-	-v|--verbose)
-	    verbose=1
-	    shift 1
-	    ;;
-	esac
 
 	case "$1" in
 	-V|--version)
@@ -84,7 +75,36 @@ TEXT
 	esac
 }
 
-options "$@"
 
+# Creo tubería nombrada
+
+[[ ! -p /tmp/shalarm ]] && mkfifo /tmp/shalarm
+
+
+case "$2" in 
+	AM)
+		p1="$1"
+		shift 2
+		resto="$@"
+		params=($p1 ${resto[@]})
+		options ${params[@]}
+	;;
+	PM)
+		p1="$1"
+		hh=$(echo $1 | cut -d: -f1)
+		mm=$(echo $1 | cut -d: -f2)
+
+		shift 2
+		resto="$@"
+		params=("$(($hh+12)):$mm" ${resto[@]})
+
+		options ${params[@]}
+		;;
+	*)
+		options "$@"	
+esac
+
+# muestro salida de la tubería
+cat < /tmp/shalarm
 
 

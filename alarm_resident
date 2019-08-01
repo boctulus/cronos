@@ -1,7 +1,25 @@
 #!/bin/bash
 
-# Valores por defecto
+#
+# Default values
+#
 source shalarm.conf
+
+#
+# Globals
+#
+declare -a msg
+
+
+pushmsg () {
+	msg=("${msg[@]}" "$1")
+}
+
+sendmsg () {
+	for m in "${msg[@]}"; do
+		echo -e "$m " > /tmp/shalarm
+	done
+}
 
 dialogo () {
 	zenity --question \
@@ -17,6 +35,13 @@ dialogo () {
 	[[ $? -eq 1 ]] && date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") || exit 0
 }
 
+function time_diff() {
+	d1=$(date -u -d "$1" +"%s")
+	d2=$(date -u -d "$2" +"%s")
+
+	date -u -d "0 $d2 sec - $d1 sec" +"%H:%M:%S"
+}
+
 _alarm () {
 	local cuando
 	local comando
@@ -29,42 +54,47 @@ _alarm () {
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift 2
 			comando="$@"
-			echo "Cuando: $cuando"
-			echo "Ejecutando $comando"	
+			#pushmsg "Cuando: $cuando"
+			pushmsg "Command: $comando"	
 		;;
 		script)
 			type="$1"; shift
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift 2
 			file="$@"
-			echo "Cuando: $cuando"
-			echo "Ejecutando script $file"
+			#pushmsg "Cuando: $cuando"
+			pushmsg "Script: script $file"
 		;;
 		*)
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift
 			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
 			text="$@"
-			echo "Cuando: $cuando"
-			echo "Texto: $text"
+			#pushmsg "Cuando: $cuando"
+			pushmsg "Alarm text: $text"
 		;;
 	esac
+
+	cuando=${cuando/24:/00:}
+	_ahora=$(date | cut -d' ' -f2-)
 	
+
 	# Hoy o mañana 
 	now=$(date +%H:%M)
-
 
 	if [[ "$cuando" > "$now" ]]; then
 		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
 		
 		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha -$tm_ant min")
-		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +$tm_dsp min") 		
+		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +$tm_dsp min") 
+		_hasta=$(date -d "$fecha -$tm_ant min" | cut -d' ' -f2-) 		
 	else
 		# necesito sumar 1 día
 		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
 
 		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha +1 day -$tm_ant min")
-		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +1 day +$tm_dsp min")	
+		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +1 day +$tm_dsp min")
+		_hasta=$(date -d "$fecha +1 day -$tm_ant min" | cut -d' ' -f2-)
 	fi
 
 
@@ -72,6 +102,15 @@ _alarm () {
 	date_jst=$date_ant
 
 	ahora=$(date +"%Y%m%d%H%M"); 
+
+
+	#####################################
+	diff=$(time_diff "$_ahora" "$_hasta")
+
+	pushmsg "Time to accomplish: $diff"
+	sendmsg
+	#####################################
+
 
 	if [[ ! "$ahora" < "$date_jst" ]]; then
 		zenity --question \
@@ -125,15 +164,8 @@ _alarm () {
 				;;
 				*)
 					dialogo
-					;; 
+				;; 
 			esac
-
-			if [[ "$type" == "_command" ]]; then
-				bash -c "$comando"
-				exit
-			else	
-				dialogo
-			fi
 		fi
 
 		sleep 59
@@ -141,4 +173,5 @@ _alarm () {
 
 }
 
+	
 _alarm "$@"

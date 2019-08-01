@@ -13,7 +13,7 @@ Usage:
 	 alarm <time> <options> [-t] <text> 
 	 alarm <time> <options> -c <command> 
 	 alarm <time> <options> -f <script file> 
-
+     
 	Options:
 	 -v, --verbose                  show detailed information
 	 -m, --mute                     no sound (not implemented)
@@ -25,8 +25,8 @@ Usage:
 	 
 	 -h, --help                     display this help
 	 -V, --version                  display version
-
-	 Time format is HH:MM
+    
+	 Time format is HH:MM with 24 HS and AM / PM support 
 	 
 
 Examples:
