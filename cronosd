@@ -169,7 +169,7 @@ _alarm () {
 			esac
 		fi
 
-		sleep 59
+		sleep $ts_update
 	done  
 }
 
