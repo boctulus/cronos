@@ -52,19 +52,21 @@ _alarm () {
 	local type
 
 	case $1 in
-		command)
+		__COMMAND__)
 			type="$1"; shift
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift 2
 			comando="$@"
+			load="$@"
 			#push "When: $cuando"
 			push "Command: $comando"	
 		;;
-		script)
+		__SCRIPT__)
 			type="$1"; shift
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift 2
 			file="$@"
+			load="$@"
 			#push "When: $cuando"
 			push "Script: script $file"
 		;;
@@ -73,6 +75,7 @@ _alarm () {
 			shift
 			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
 			text="$@"
+			load="$@"
 			#push "When: $cuando"
 			push "Alarm text: $text"
 		;;
@@ -138,6 +141,8 @@ _alarm () {
 	#push "$_ahora ][ $_hasta"
 	push "Time to accomplish: $day in $diff"
 	sendmsg
+
+	echo -e "$_hasta;$type;$load" >> /tmp/cronosq
 	#####################################
 
 	#echo \$date_dsp = "$date_dsp"
@@ -152,11 +157,11 @@ _alarm () {
 			#echo "Siendo $ahora se dispara *** "
 
 			case $type in
-				command)
+				__COMMAND__)
 					bash -c "$comando"
 					exit 0
 				;;
-				script)
+				__SCRIPT__)
 					source "$file"
 					exit 0
 				;;

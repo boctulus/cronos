@@ -23,6 +23,10 @@ options ()
 	 -f, --file                     script file
 	 -s, --script                   same as -f
 	 
+	 -l, --list                     list all tasks / alarms
+	 -r, --remove                   remove an specific task or alarm 
+	 -a, --all                      remove all tasks / alarms
+
 	 -h, --help                     display this help
 	 -V, --version                  display version
 TEXT
@@ -44,12 +48,12 @@ TEXT
 
 		case "$2" in
 			-c|--command|--cmd)
-			nohup $residente "command" "$@" >/dev/null 2>&1 &
+			nohup $residente "__COMMAND__" "$@" >/dev/null 2>&1 &
 			shift
 			cat < /tmp/cronosp
 			;;
 			-f|--file|-s|--script)
-			nohup $residente "script" "$@" >/dev/null 2>&1 &
+			nohup $residente "__SCRIPT__" "$@" >/dev/null 2>&1 &
 			shift
 			cat < /tmp/cronosp
 			;;
@@ -62,6 +66,18 @@ TEXT
 			cat < /tmp/cronosp
 		esac
 		;;		
+	-l|--list)
+		declare -a pids
+		pids=( $(pgrep ^cronosd$) )
+		
+		for pid in ${pids[@]}; do
+			echo "$pid"
+		done		
+		;;
+	-a|--all|--clear)
+		pkill ^cronosd$
+		touch /tmp/cronosq
+		;;
 	*)		
 		if [[ $# -eq 0 ]]; then
 			echo -e "$help"
@@ -74,10 +90,13 @@ TEXT
 }
 
 
-# Creo tubería nombrada
-
+# Creo tubería nombrada o la limpio
 [[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp || (dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null 2>&1
 
+# Creo queue
+[[ ! -f /tmp/cronoq ]] && touch /tmp/cronoq
+ 
+# Posibilito formato AM / PM
 case "$2" in 
 	AM)
 		p1="$1"

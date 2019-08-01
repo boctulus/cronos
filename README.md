@@ -40,6 +40,14 @@ Examples:
     cronos 12:15 -c 'command > output.txt'
 
 
+How to install
+
+	git clone https://github.com/boctulus/cronos.git
+	cd cronos
+	chmod +x cronos*
+	sudo ln -s $(pwd)/cronos /usr/bin		
+
+
 How it works
 
 - Cronos is programmed for a moment in the future 'tf'
