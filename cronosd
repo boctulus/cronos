@@ -29,6 +29,11 @@ sendmsg () {
 	[[ ${#msg[@]} -eq 0 ]] && echo " " > /tmp/cronosp
 }
 
+quit () {
+	sendmsg
+	exit $1
+}
+
 dialogo () {
 	zenity --question \
 			    --title="Alarm" \
@@ -40,13 +45,13 @@ dialogo () {
 			  	--window-icon="clock.png" \
 			    2>/dev/null
 
-	if [[ $? -eq 1 ]]; then
-		date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") 
-	else 
+	if [[ $? -eq 0 ]]; then
 		push "Cronos has finish"
 		sendmsg
 		remove_task
-		exit 0
+		exit 0	 
+	else 
+		date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min")
 	fi	
 }
 
@@ -59,9 +64,7 @@ function time_diff() {
 
 _alarm () {
 	local cuando
-	local comando
-	local text
-	local type
+	#local type
 
 	case $1 in
 		__COMMAND__)
@@ -153,7 +156,10 @@ _alarm () {
 	echo -e "$pid\t$_hasta\t${type//__/}\t$payload" >> /tmp/cronosq
 	#####################################
 
+	daemon
+}
 
+daemon () {
 	while [[ "$ahora" < "$date_jst" ]]; do
 		ahora=$(date +"%Y%m%d%H%M")
 
@@ -172,7 +178,6 @@ _alarm () {
 				;;
 				*)
 					dialogo
-					remove_task
 				;; 
 			esac
 		fi
@@ -180,7 +185,6 @@ _alarm () {
 		sleep $ts_update
 	done  
 }
-
 
 #
 # Load default values

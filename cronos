@@ -2,6 +2,12 @@
 
 version=0.21
 
+quit () {
+	mkfifo /tmp/cronosp || (dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null
+	exit $1
+}
+
+
 options () 
 {
 	help=$(cat <<-TEXT
@@ -67,8 +73,8 @@ TEXT
 	-l|--list)
 		declare -a jobs
 
-		# Sino hay cronos, limpio la lista
-		[[ -z `pgrep ^cronosd$` ]] && { false > /tmp/cronosq; echo "There are no jobs"; }	
+		# Sino no hay cronos, limpio la lista
+		[[ -z `pgrep ^cronosd$` ]] && { false > /tmp/cronosq; echo "There are no jobs"; exit 0;}	
 
 		jobs_str=$(cat /tmp/cronosq)
 		explode "$jobs_str" $'\n' jobs
