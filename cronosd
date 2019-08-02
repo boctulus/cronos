@@ -12,7 +12,6 @@ loadconf () {
 
 remove_task () {
 	pid=$$
-	echo "removing with PID=$pid"
 	sed -i "/^$pid\t/d" /tmp/cronosq
 }
 
@@ -158,7 +157,7 @@ _alarm () {
 	sendmsg
 
 	pid=$$
-	echo -e "$pid\t$_hasta\t$type\t$load" >> /tmp/cronosq
+	echo -e "$pid\t$_hasta\t${type//__/}\t$load" >> /tmp/cronosq
 	#####################################
 
 

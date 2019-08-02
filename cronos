@@ -24,6 +24,7 @@ options ()
 	 
 	 -l, --list                     list all tasks / alarms
 	 -r, --remove                   remove an specific task or alarm 
+	 -d, --delete                   same as --remove
 	 -a, --all                      remove all tasks / alarms
 
 	 -h, --help                     display this help
@@ -72,7 +73,8 @@ TEXT
 		explode "$jobs_str" $'\n' jobs
 
 		for job in "${jobs[@]}"; do
-			echo "$job"
+			load=$(echo -e "$job" | cut -d$'\t' -f4)
+			echo -e "$job" | awk -v carga="$load" '{print $1,"\t",$2,$3,$4,$6,"\t[",$7,"]\t",carga}'
 		done		
 		;;
 	-a|--all|--clear)
@@ -80,6 +82,24 @@ TEXT
 		pkill ^cronosd$
 		false > /tmp/cronosq
 		;;
+	-r|--remove|-d|--delete|-e|--erase|-k|--kill)	
+		[[ -z $2 ]] && { echo 'Error: PID is missed'; exit 1; }
+
+		if [[ ! -z $(ps -p $2 | grep ' cronosd$') ]]; then
+			kill $2 2>/dev/null
+			if [[ $? -eq 0 ]]; then	
+				sed -i "/^$2\t/d" /tmp/cronosq
+				echo "A crono was killed"
+				exit 0
+			else		
+				echo "An error has occurred. PID $2 could not be killed"
+				exit 1
+			fi
+		else
+			echo "Crono not found with PID $2"
+			exit 1
+		fi		
+	;;
 	*)		
 		if [[ $# -eq 0 ]]; then
 			echo -e "$help"
