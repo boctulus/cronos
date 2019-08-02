@@ -24,6 +24,10 @@ Usage:
 	 -f, --file                     script file
 	 -s, --script                   same as -f
 	 
+	 -l, --list                     list all tasks / alarms
+	 -r, --remove                   remove an specific task or alarm 
+	 -a, --all                      remove all tasks / alarms
+	 
 	 -h, --help                     display this help
 	 -V, --version                  display version
     
