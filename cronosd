@@ -69,7 +69,7 @@ _alarm () {
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift 2
 			comando="$@"
-			load="$@"
+			payload="$@"
 			#push "When: $cuando"
 			push "Command: $comando"	
 		;;
@@ -78,7 +78,7 @@ _alarm () {
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift 2
 			file="$@"
-			load="$@"
+			payload="$@"
 			#push "When: $cuando"
 			push "Script: script $file"
 		;;
@@ -88,7 +88,7 @@ _alarm () {
 			shift
 			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
 			text="$@"
-			load="$@"
+			payload="$@"
 			#push "When: $cuando"
 			push "Alarm text: $text"
 		;;
@@ -157,7 +157,7 @@ _alarm () {
 	sendmsg
 
 	pid=$$
-	echo -e "$pid\t$_hasta\t${type//__/}\t$load" >> /tmp/cronosq
+	echo -e "$pid\t$_hasta\t${type//__/}\t$payload" >> /tmp/cronosq
 	#####################################
 
 

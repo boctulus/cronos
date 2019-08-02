@@ -67,14 +67,28 @@ TEXT
 	-l|--list)
 		declare -a jobs
 
+		# Sino hay cronos, limpio la lista
 		[[ -z `pgrep ^cronosd$` ]] && { false > /tmp/cronosq; echo "There are no jobs"; }	
 
 		jobs_str=$(cat /tmp/cronosq)
 		explode "$jobs_str" $'\n' jobs
 
+		echo -e "#\t PID\t DATETIME\t\tTYPE\t\t PAYLOAD"
+
+		local ix=1
+		local _pid
 		for job in "${jobs[@]}"; do
-			load=$(echo -e "$job" | cut -d$'\t' -f4)
-			echo -e "$job" | awk -v carga="$load" '{print $1,"\t",$2,$3,$4,$6,"\t[",$7,"]\t",carga}'
+			load=$(echo -e "$job" | cut -d$'\t' -f4) 
+			_pid=$(echo "$job" | grep -o ^[0-9]*)
+			
+			# Si el crono no existe lo borro de la lista
+			if [[ -z $(ps -p $_pid | grep ' cronosd$') ]]; then
+				sed -i "/^$_pid\t/d" /tmp/cronosq
+				continue
+			fi
+			
+			echo -e "$job" | awk -v carga="$load" -v ix=$ix '{print ix,"\t",$1,"\t",$2,$3,$4,$6,"\t[",$7,"]\t",carga}'
+			(( ix++ ))
 		done		
 		;;
 	-a|--all|--clear)
@@ -83,7 +97,7 @@ TEXT
 		false > /tmp/cronosq
 		;;
 	-r|--remove|-d|--delete|-e|--erase|-k|--kill)	
-		[[ -z $2 ]] && { echo 'Error: PID is missed'; exit 1; }
+		[[ -z $2 ]] && { echo 'Error: argument is missed'; exit 1; }
 
 		if [[ ! -z $(ps -p $2 | grep ' cronosd$') ]]; then
 			kill $2 2>/dev/null
