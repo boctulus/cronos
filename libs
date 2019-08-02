@@ -1,0 +1,33 @@
+#!/bin/bash
+
+#
+# Hace un 'split' de un string generando un array (simil explode de php)
+#
+# @param string string_to_explode
+# @param string separator
+# @param array 	
+#
+explode () {
+	local strvar="$1"
+	local sep="$2"
+	local arrname=$3
+
+	set -f
+	case $2 in
+		ENTER)
+			IFS=$'\n'
+			;;
+		TAB)
+			IFS=$'\t'
+			;;	
+		*)
+			IFS=$2
+			;;	
+	esac		
+	set -- $strvar
+	set +f; unset IFS
+
+	str=$arrname
+	str+='=("$@")'
+	eval "$str"
+}

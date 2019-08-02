@@ -2,20 +2,21 @@
 
 Schedule a task or create an alarm
 
-Features:
+Features
 
-* Alarm
+* Alarm ⏰
 * Programmed tasks
-* Easy to sue
+* Easy to use
 
 
-Usage:
+Usage
 
 	 cronos <time> <options> [-t] <text> 
 	 cronos <time> <options> -c <command> 
 	 cronos <time> <options> -f <script file> 
      
 	Options:
+     
 	 -v, --verbose                  show detailed information
 	 -m, --mute                     no sound (not implemented)
 	 
@@ -23,7 +24,7 @@ Usage:
 	 -c, --command                  command to be executed
 	 -f, --file                     script file
 	 -s, --script                   same as -f
-	 
+
 	 -l, --list                     list all tasks / alarms
 	 -r, --remove                   remove an specific task or alarm 
 	 -a, --all                      remove all tasks / alarms

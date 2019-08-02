@@ -1,8 +1,6 @@
 #!/bin/bash
 
-
 version=0.21
-
 
 options () 
 {
@@ -15,6 +13,7 @@ options ()
 	Schedule a task or create an alarm
 	
 	Options:
+
 	 -v, --verbose                  show detailed information
 	 -m, --mute                     no sound (not implemented)
 	 
@@ -42,8 +41,6 @@ TEXT
 		return
 		;;
 	[0-9][0-9]:[0-9][0-9]|[0-9]:[0-9][0-9])
-		local real=$(realpath $0)
-		local base=$(dirname $real)
 		residente="$base/cronosd"
 
 		case "$2" in
@@ -67,16 +64,21 @@ TEXT
 		esac
 		;;		
 	-l|--list)
-		declare -a pids
-		pids=( $(pgrep ^cronosd$) )
-		
-		for pid in ${pids[@]}; do
-			echo "$pid"
+		declare -a jobs
+
+		[[ -z `pgrep ^cronosd$` ]] && { false > /tmp/cronosq; echo "There are no jobs"; }	
+
+		jobs_str=$(cat /tmp/cronosq)
+		explode "$jobs_str" $'\n' jobs
+
+		for job in "${jobs[@]}"; do
+			echo "$job"
 		done		
 		;;
 	-a|--all|--clear)
+		echo "cleared ***"
 		pkill ^cronosd$
-		touch /tmp/cronosq
+		false > /tmp/cronosq
 		;;
 	*)		
 		if [[ $# -eq 0 ]]; then
@@ -89,12 +91,18 @@ TEXT
 	esac
 }
 
+# Path del proyecto
+real=$(realpath $0)
+base=$(dirname $real)
+
+# Cargo biblioteca
+source $base/libs
 
 # Creo tubería nombrada o la limpio
 [[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp || (dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null 2>&1
 
 # Creo queue
-[[ ! -f /tmp/cronoq ]] && touch /tmp/cronoq
+[[ ! -f /tmp/cronosq ]] && touch /tmp/cronosq
  
 # Posibilito formato AM / PM
 case "$2" in 

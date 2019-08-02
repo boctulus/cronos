@@ -10,6 +10,12 @@ loadconf () {
 	source $base/cronos.conf
 }
 
+remove_task () {
+	pid=$$
+	echo "removing with PID=$pid"
+	sed -i "/^$pid\t/d" /tmp/cronosq
+}
+
 push () {
 	msg=("${msg[@]}" "$1")
 }
@@ -35,7 +41,14 @@ dialogo () {
 			  	--window-icon="clock.png" \
 			    2>/dev/null
 
-	[[ $? -eq 1 ]] && date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") || { push "Cronos has finish"; sendmsg; exit 0; }
+	if [[ $? -eq 1 ]]; then
+		date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min") 
+	else 
+		push "Cronos has finish"
+		sendmsg
+		remove_task
+		exit 0
+	fi	
 }
 
 function time_diff() {
@@ -70,7 +83,8 @@ _alarm () {
 			#push "When: $cuando"
 			push "Script: script $file"
 		;;
-		*)
+		*)	
+			type="__ALARM__"
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift
 			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
@@ -130,6 +144,7 @@ _alarm () {
 		else 
 			    push "Aborted ***"
 			    sendmsg	
+			    remove_task
 			    exit 1
 		fi	
 	fi	
@@ -142,31 +157,30 @@ _alarm () {
 	push "Time to accomplish: $day in $diff"
 	sendmsg
 
-	echo -e "$_hasta;$type;$load" >> /tmp/cronosq
+	pid=$$
+	echo -e "$pid\t$_hasta\t$type\t$load" >> /tmp/cronosq
 	#####################################
 
-	#echo \$date_dsp = "$date_dsp"
-	#echo \$date_jst = "$date_jst"
 
 	while [[ "$ahora" < "$date_jst" ]]; do
 		ahora=$(date +"%Y%m%d%H%M")
-		#echo "Ahora: $(date +"%Y-%m-%d %H:%M") y esperando que sea $date_jst"
-		#echo "Maximo para ejecucion: $date_dsp"
 
 		if [[ ! "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_dsp" ]]; then  
-			#echo "Siendo $ahora se dispara *** "
 
 			case $type in
 				__COMMAND__)
 					bash -c "$comando"
+					remove_task
 					exit 0
 				;;
 				__SCRIPT__)
 					source "$file"
+					remove_task
 					exit 0
 				;;
 				*)
 					dialogo
+					remove_task
 				;; 
 			esac
 		fi
