@@ -52,10 +52,10 @@ How it works
 
 - Cronos is programmed for a moment in the future 'tf'
 
-- Cronos is activated in (tf-tm_ant) with tm_ant = 5 [min] by default
+- Cronos is activated in (tf-tm_ant) with tm_ant = 5 [min] by default.
 
-- Cronos can be triggered after (tf-tm_ant) if the system was in suspension or hibernation at that time but at most in tmax = tf + tm_dsp being tm_dsp = 10 [min] by default
+- Cronos can be triggered after (tf-tm_ant) if the system was in suspension or hibernation at that time but at most in tmax = tf + tm_dsp being tm_dsp = 10 [min] by default.
 
 - The user can postpone the alarm for tm_rep = 5 [min]
 
-- Alarm notification is dismissed after tm_dismiss = 60 [min]
+- Alarm notification is dismissed after tm_dismiss = 60 [min] 
