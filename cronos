@@ -1,12 +1,10 @@
 #!/bin/bash
 
-version=0.21
+version=0.3
 
 quit () {
-	mkfifo /tmp/cronosp || (dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null
-	exit $1
+	dd if=/tmp/cronosp iflag=nonblock of=/dev/null >/dev/null 2>&1
 }
-
 
 options () 
 {
@@ -54,27 +52,24 @@ TEXT
 			-c|--command|--cmd)
 			nohup $residente "__COMMAND__" "$@" >/dev/null 2>&1 &
 			shift
-			cat < /tmp/cronosp
 			;;
 			-f|--file|-s|--script)
 			nohup $residente "__SCRIPT__" "$@" >/dev/null 2>&1 &
 			shift
-			cat < /tmp/cronosp
 			;;
 			-t|--text)
 			nohup $residente "$@" >/dev/null 2>&1 &
-			cat < /tmp/cronosp
 			;;
 			*)
 			nohup $residente "$@" >/dev/null 2>&1 &
-			cat < /tmp/cronosp
 		esac
+			cat < /tmp/cronosp
 		;;		
 	-l|--list)
 		declare -a jobs
 
 		# Sino no hay cronos, limpio la lista
-		[[ -z `pgrep ^cronosd$` ]] && { false > /tmp/cronosq; echo "There are no jobs"; exit 0;}	
+		[[ -z `pgrep ^cronosd$` ]] && { false > /tmp/cronosq; echo "There are no jobs"; quit 0;}	
 
 		jobs_str=$(cat /tmp/cronosq)
 		explode "$jobs_str" $'\n' jobs
@@ -103,21 +98,21 @@ TEXT
 		false > /tmp/cronosq
 		;;
 	-r|--remove|-d|--delete|-e|--erase|-k|--kill)	
-		[[ -z $2 ]] && { echo 'Error: argument is missed'; exit 1; }
+		[[ -z $2 ]] && { echo 'Error: argument is missed'; quit 1; }
 
 		if [[ ! -z $(ps -p $2 | grep ' cronosd$') ]]; then
 			kill $2 2>/dev/null
 			if [[ $? -eq 0 ]]; then	
 				sed -i "/^$2\t/d" /tmp/cronosq
 				echo "A crono was killed"
-				exit 0
+				quit 0
 			else		
 				echo "An error has occurred. PID $2 could not be killed"
-				exit 1
+				quit 1
 			fi
 		else
 			echo "Crono not found with PID $2"
-			exit 1
+			quit 1
 		fi		
 	;;
 	*)		
@@ -139,9 +134,12 @@ base=$(dirname $real)
 source $base/libs
 
 # Creo tubería nombrada o la limpio
-[[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp || (dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null 2>&1
+[[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp || dd if=/tmp/cronosp iflag=nonblock of=/dev/null >/dev/null 2>&1
 
-# Creo queue
+# Creo tubería nombrada para el cronos-manager
+[[ ! -p /tmp/cronosp2 ]] && mkfifo /tmp/cronosp2
+
+# Creo registro
 [[ ! -f /tmp/cronosq ]] && touch /tmp/cronosq
  
 # Posibilito formato AM / PM
@@ -150,7 +148,7 @@ case "$2" in
 		p1="$1"
 		hh=$(echo $1 | cut -d: -f1)
 
-		[[ $hh -gt 12 ]] && { echo "$(basename $0): invalid time format !"; exit 1; }
+		[[ $hh -gt 12 ]] && { echo "$(basename $0): invalid time format !"; quit 1; }
 
 		shift 2
 		resto="$@"
@@ -173,5 +171,7 @@ case "$2" in
 	*)
 		options "$@"	
 esac
+
+quit
 
 

@@ -6,21 +6,20 @@ declare -a msg
 
 loadconf () {
 	local real=$(realpath $0)
-	local base=$(dirname $real)
+	base=$(dirname $real)
 	source $base/cronos.conf
 }
 
-remove_task () {
-	pid=$$
-	sed -i "/^$pid\t/d" /tmp/cronosq
-}
-
 push () {
-	msg=("${msg[@]}" "$1")
+	if [[ $debug == 'true' ]]; then
+		echo "$1"
+	else
+		msg=("${msg[@]}" "$1")
+	fi
 }
 
 sendmsg () {
-	(dd if=/tmp/cronosp iflag=nonblock of=/dev/null) >/dev/null 2>&1
+	dd if=/tmp/cronosp iflag=nonblock of=/dev/null >/dev/null 2>&1
 
 	for m in "${msg[@]}"; do
 		echo -e "$m " > /tmp/cronosp
@@ -30,7 +29,7 @@ sendmsg () {
 }
 
 quit () {
-	sendmsg
+	[[ $debug == 'true' ]] && echo "quiting ..."
 	exit $1
 }
 
@@ -47,9 +46,7 @@ dialogo () {
 
 	if [[ $? -eq 0 ]]; then
 		push "Cronos has finish"
-		sendmsg
-		remove_task
-		exit 0	 
+		quit 0	 
 	else 
 		date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min")
 	fi	
@@ -139,9 +136,7 @@ _alarm () {
 			date_jst=$(date -d  "+1 day -5 min")
 		#else 
 		#	    push "Aborted ***"
-		#	    sendmsg	
-		#	    remove_task
-		#	    exit 1
+		#	    quit 1
 		#fi	
 	fi	
 
@@ -150,7 +145,6 @@ _alarm () {
 
 	#push "$_ahora ][ $_hasta"
 	push "Time to accomplish: $day in $diff"
-	sendmsg
 
 	pid=$$
 	echo -e "$pid\t$_hasta\t${type//__/}\t$payload" >> /tmp/cronosq
@@ -160,6 +154,8 @@ _alarm () {
 }
 
 daemon () {
+	sendmsg
+
 	while [[ "$ahora" < "$date_jst" ]]; do
 		ahora=$(date +"%Y%m%d%H%M")
 
@@ -168,13 +164,11 @@ daemon () {
 			case $type in
 				__COMMAND__)
 					bash -c "$payload"
-					remove_task
-					exit 0
+					quit 0
 				;;
 				__SCRIPT__)
 					source "$payload"
-					remove_task
-					exit 0
+					quit 0
 				;;
 				*)
 					dialogo
@@ -191,5 +185,5 @@ daemon () {
 #
 loadconf
 
-
 _alarm "$@"
+quit

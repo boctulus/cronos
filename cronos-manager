@@ -1,0 +1,8 @@
+#!/bin/bash
+
+# Creo tubería nombrada para el cronos-manager
+while [ 0 ];  do
+	pid=$(cat /tmp/cronosp2 2>/dev/null)
+	echo "Killing task with PID $pid"
+	kill $pid
+done
