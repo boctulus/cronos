@@ -4,6 +4,7 @@ version=0.3
 
 quit () {
 	dd if=/tmp/cronosp iflag=nonblock of=/dev/null >/dev/null 2>&1
+	exit
 }
 
 options () 
@@ -97,7 +98,7 @@ TEXT
 		pkill ^cronosd$
 		false > /tmp/cronosq
 		;;
-	-r|--remove|-d|--delete|-e|--erase|-k|--kill)	
+	-r|--remove|-d|--delete|-e|--erase|-k|--kill)
 		[[ -z $2 ]] && { echo 'Error: argument is missed'; quit 1; }
 
 		if [[ ! -z $(ps -p $2 | grep ' cronosd$') ]]; then
