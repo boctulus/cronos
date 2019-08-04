@@ -136,9 +136,6 @@ source $base/libs
 # Creo tubería nombrada o la limpio
 [[ ! -p /tmp/cronosp ]] && mkfifo /tmp/cronosp || dd if=/tmp/cronosp iflag=nonblock of=/dev/null >/dev/null 2>&1
 
-# Creo tubería nombrada para el cronos-manager
-[[ ! -p /tmp/cronosp2 ]] && mkfifo /tmp/cronosp2
-
 # Creo registro
 [[ ! -f /tmp/cronosq ]] && touch /tmp/cronosq
  

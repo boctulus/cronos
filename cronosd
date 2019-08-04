@@ -121,23 +121,24 @@ _alarm () {
 
 	ahora=$(date +"%Y%m%d%H%M");
 	if [[ ! "$ahora" < "$date_jst" ]]; then
-		#zenity --question \
-		#	    --title="Alarm" \
-		#	    --text "<span foreground=\"#ccc\" font=\"30\">Tomorrow?</span>" \
-		#	    --timeout="$(($tm_dismiss * 60))" \
-		#	    --ok-label="Yes" \
-		#	    --cancel-label="No" \
-		#	    --icon-name="clock" \
-		#	  	--window-icon="clock.png" \
-		#	  	--height=150 --width=200 \
-		#	    2>/dev/null
+		zenity --question \
+			    --title="Alarm" \
+			    --text "<span foreground=\"#ccc\" font=\"30\">Tomorrow?</span>" \
+			    --timeout="$(($tm_dismiss * 60))" \
+			    --ok-label="Yes" \
+			    --cancel-label="No" \
+			    --icon-name="clock" \
+			  	--window-icon="clock.png" \
+			  	--height=150 --width=200 \
+			    2>/dev/null
 
-		#if [[ $? -eq 0 ]]; then
+		if [[ $? -eq 0 ]]; then
 			date_jst=$(date -d  "+1 day -5 min")
-		#else 
-		#	    push "Aborted ***"
-		#	    quit 1
-		#fi	
+		else 
+		    push "Aborted ***"
+		    sendmsg
+		    quit 1
+		fi	
 	fi	
 
 	#####################################
