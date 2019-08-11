@@ -59,6 +59,33 @@ function time_diff() {
 	date -u -d "0 $d2 sec - $d1 sec" +"%H:%M:%S"
 }
 
+playsound () {
+	file="$1"
+	format=`file $1 | cut -d: -f2`
+
+	# mp4 / wav
+	if [[ ! -z `which cvlc` ]]; then
+		cvlc "$file" >/dev/null 2>&1 &
+		return
+	fi	
+
+	# mp3 / wav / oog
+	if [[ ! -z `which ffplay` ]]; then
+		ffplay -nodisp -autoexit "$file" >/dev/null 2>&1 &
+		return
+	fi	
+
+	case "$format" in
+		*RIFF*) # wav
+		[[ ! -z `which aplay` ]] && aplay "$file" >/dev/null 2>&1 &
+		;;
+
+		*MPEG*) # mp3
+		[[ ! -z `which mpeg123` ]] && mpeg123 "$file" >/dev/null 2>&1 &
+		;;
+	esac
+}
+
 _alarm () {
 	local cuando
 	#local type
@@ -84,8 +111,18 @@ _alarm () {
 			type="__ALARM__"
 			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
 			shift
+			
+			mute=off
+			case "$1" in
+				-m|--mute)
+					mute=on
+					shift 
+				;;
+			esac
+			
 			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
 			payload="$@"
+			
 			#push "When: $cuando"
 			push "Alarm text: $payload"
 		;;
@@ -172,6 +209,7 @@ daemon () {
 					quit 0
 				;;
 				*)
+					[[ $mute != 'on' ]] && playsound "$sound"
 					dialogo
 				;; 
 			esac

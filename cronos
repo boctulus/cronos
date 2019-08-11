@@ -11,7 +11,7 @@ options ()
 {
 	help=$(cat <<-TEXT
 	Usage:
-	    $(basename $0) <time> <options> [-t] <text> 
+	    $(basename $0) <time> <options> [-m] [-t] <text> 
 	    $(basename $0) <time> <options> -c <command> 
 	    $(basename $0) <time> <options> -f <script file> 
 
@@ -19,8 +19,7 @@ options ()
 	
 	Options:
 
-	 -v, --verbose                  show detailed information
-	 -m, --mute                     no sound (not implemented)
+	 -m, --mute                     no sound
 	 
 	 -t, --text                     text for alarm
 	 -c, --command                  command to be executed
