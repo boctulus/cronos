@@ -50,8 +50,8 @@ How to install
 
 	git clone https://github.com/boctulus/cronos.git
 	cd cronos
-	chmod +x cronos*
 	sudo ln -s $(pwd)/cronos /usr/bin		
+
 
 How it works
 
