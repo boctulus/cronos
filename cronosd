@@ -59,6 +59,21 @@ function time_diff() {
 	date -u -d "0 $d2 sec - $d1 sec" +"%H:%M:%S"
 }
 
+abs_path () {
+	path="$1"
+
+	local real=$(realpath $0)
+	base=$(dirname $real)
+
+	if [[ "${path:0:1}" == "/" ]]; then
+		echo "$path"
+		return
+	else
+		realpath "$base/$path"
+		return
+	fi
+}
+
 playsound () {
 	file="$1"
 	format=`file $1 | cut -d: -f2`
@@ -209,7 +224,7 @@ daemon () {
 					quit 0
 				;;
 				*)
-					[[ $mute != 'on' ]] && playsound "$sound"
+					[[ $mute != 'on' ]] && playsound $(abs_path "$sound")
 					dialogo
 				;; 
 			esac
