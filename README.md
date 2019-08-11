@@ -34,6 +34,8 @@ Usage
 	 Time format is HH:MM with 24 HS and AM / PM support 
 	 
 
+
+
 Examples:
 
     cronos 23:00 Dragon Ball
@@ -46,11 +48,13 @@ Examples:
      
 
 
+
 How to install
 
 	git clone https://github.com/boctulus/cronos.git
 	cd cronos
 	sudo ln -s $(pwd)/cronos /usr/bin		
+
 
 
 How it works
