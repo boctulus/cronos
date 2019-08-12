@@ -10,13 +10,15 @@ quit () {
 options () 
 {
 	help=$(cat <<-TEXT
+
+	$(basename $0) - schedule a task or create an alarm
+
 	Usage:
+	
 	    $(basename $0) <time> <options> [-m] [-t] <text> 
 	    $(basename $0) <time> <options> -c <command> 
 	    $(basename $0) <time> <options> -f <script file> 
 
-	Schedule a task or create an alarm
-	
 	Options:
 
 	 -m, --mute                     no sound
@@ -32,12 +34,12 @@ options ()
 	 -a, --all                      remove all tasks / alarms
 
 	 -h, --help                     display this help
-	 -V, --version                  display version
+	 -v, --version                  display version
 TEXT
 )
 
 	case "$1" in
-	-V|--version)
+	-v|--version)
 	  	echo "$(basename $0) version $version"
 	  	return
 		;;

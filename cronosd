@@ -45,7 +45,7 @@ dialogo () {
 			    2>/dev/null
 
 	if [[ $? -eq 0 ]]; then
-		push "Cronos has finish"
+		[[ ! -z $background_process ]] && kill $background_process
 		quit 0	 
 	else 
 		date_jst=$(date +"%Y%m%d%H%M" -d "+$tm_rep min")
@@ -75,8 +75,10 @@ abs_path () {
 }
 
 playsound () {
-	file="$1"
-	format=`file $1 | cut -d: -f2`
+	args=$@
+	file=${args[@]}
+
+	format=`file "$file" | cut -d: -f2`
 
 	# mp4 / wav
 	if [[ ! -z `which cvlc` ]]; then
@@ -225,6 +227,7 @@ daemon () {
 				;;
 				*)
 					[[ $mute != 'on' ]] && playsound $(abs_path "$sound")
+					background_process=$!
 					dialogo
 				;; 
 			esac

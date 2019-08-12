@@ -70,6 +70,6 @@ How it works
 - Alarm notification is dismissed after tm_dismiss = 60 [min] 
 
 
-Wav sounds
+Free sounds
 
 	http://www.findsounds.com
