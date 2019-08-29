@@ -7,6 +7,7 @@ declare -a msg
 # time interval in seconds used in completion verification
 ts_update=60
 
+invoker=$(cat /proc/$PPID/comm)
 
 loadconf () {
 	local real=$(realpath $0)
@@ -23,6 +24,13 @@ push () {
 }
 
 sendmsg () {
+	if [[ ! $invoker == 'cronos' ]]; then
+		for m in "${msg[@]}"; do
+			echo -e "$m "
+		done
+		return 0
+	fi
+
 	dd if=/tmp/cronosp iflag=nonblock of=/dev/null >/dev/null 2>&1
 
 	for m in "${msg[@]}"; do
