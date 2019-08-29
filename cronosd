@@ -4,6 +4,10 @@ LANG=en_us_88591
 
 declare -a msg
 
+# time interval in seconds used in completion verification
+ts_update=60
+
+
 loadconf () {
 	local real=$(realpath $0)
 	base=$(dirname $real)
@@ -210,6 +214,8 @@ _alarm () {
 
 daemon () {
 	sendmsg
+
+	sleep $(echo 60 - $(date +%S) | bc)
 
 	while [[ "$ahora" < "$date_jst" ]]; do
 		ahora=$(date +"%Y%m%d%H%M")
