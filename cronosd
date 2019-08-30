@@ -16,7 +16,7 @@ loadconf () {
 }
 
 push () {
-	if [[ $debug == 'true' ]]; then
+	if [[ ! $invoker == 'cronos' ]]; then
 		echo "$1"
 	else
 		msg=("${msg[@]}" "$1")
@@ -24,12 +24,7 @@ push () {
 }
 
 sendmsg () {
-	if [[ ! $invoker == 'cronos' ]]; then
-		for m in "${msg[@]}"; do
-			echo -e "$m "
-		done
-		return 0
-	fi
+	[[ ! $invoker == 'cronos' ]] && return 0
 
 	dd if=/tmp/cronosp iflag=nonblock of=/dev/null >/dev/null 2>&1
 
