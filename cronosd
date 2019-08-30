@@ -36,7 +36,7 @@ sendmsg () {
 }
 
 quit () {
-	[[ $debug == 'true' ]] && echo "quiting ..."
+	[[ ! $invoker == 'cronos' ]] && echo "quiting ..."
 	exit $1
 }
 
