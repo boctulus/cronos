@@ -49,8 +49,8 @@ Examples:
     cronos 12:15 -c 'command1 && command2'
     cronos 12:15 -c 'command > output.txt'
      
-
-* Time increments works with 'date' command format but up to +24 hours (for now)
+    * Time increments works with 'date' command format but up to +24 hours (for now)
+    
 
 
 How to install
