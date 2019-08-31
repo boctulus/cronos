@@ -38,15 +38,19 @@ Usage
 
 Examples:
 
-    cronos 23:00 Dragon Ball
-    cronos 23:00 --mute Dragon Ball
-    cronos  6:00 PM buy something
+    cronos 23:00 Watch TV
+    cronos 23:00 --mute Washing machine
+    cronos 6:00 PM buy something
+    cronos 'NOW +5 mins' Do it now
+    cronos 'NOW +2 hours +30 mins' some work
+    cronos '+1 day' Exam
     cronos 23:45 -f some_script.sh 
     cronos 10:30 -c some_command
     cronos 12:15 -c 'command1 && command2'
     cronos 12:15 -c 'command > output.txt'
      
 
+* Time increments works with 'date' command format but up to +24 hours (for now)
 
 
 How to install

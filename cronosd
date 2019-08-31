@@ -112,12 +112,30 @@ playsound () {
 
 _alarm () {
 	local cuando
-	#local type
+
+	when="$1"
+
+	if [[ "$when" == 'NOW' ]]; then
+		when=$(date +'%H:%M') 
+	fi	
+
+	echo "$when" | egrep '^NOW\b' >/dev/null 2>&1
+	if [[ $? -eq 0 ]]; then
+		when="${when/NOW /}"
+	fi
+
+	echo "$when" | egrep '+?[0-9]+ (minutes\b|minutes\b|mins\b|min\b|hours\b|hour\b|day\b|days\b)' >/dev/null 2>&1
+
+	if [[ $? -eq 0 ]]; then
+		when=$(date +'%H:%M' -d "$when" 2>&1) 
+
+		[[ $? -ne 0 ]] && { push "Error in time format !!!"; exit 1; } 
+	fi
 
 	case $1 in
 		__COMMAND__)
 			type="$1"; shift
-			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			[[ ${#when} -eq 5 ]] && cuando="$when" || cuando="0$when"
 			shift 2
 			payload="$@"
 			#push "When: $cuando"
@@ -125,7 +143,7 @@ _alarm () {
 		;;
 		__SCRIPT__)
 			type="$1"; shift
-			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			[[ ${#when} -eq 5 ]] && cuando="$when" || cuando="0$when"
 			shift 2
 			payload="$@"
 			#push "When: $cuando"
@@ -133,7 +151,7 @@ _alarm () {
 		;;
 		*)	
 			type="__ALARM__"
-			[[ ${#1} -eq 5 ]] && cuando="$1" || cuando="0$1"
+			[[ ${#when} -eq 5 ]] && cuando="$when" || cuando="0$when"
 			shift
 			
 			mute=off
@@ -156,29 +174,30 @@ _alarm () {
 	_ahora=$(date | cut -d' ' -f2-)
 	
 
-	# Hoy o mañana 
+	# Hoy o mañana
+	day= 
 	now=$(date +%H:%M)
 
 	if [[ "$cuando" > "$now" ]]; then
-		day="today"
+		#day="today in "
 		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
 		
-		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha -$tm_ant min")
-		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +$tm_dsp min") 
-		_hasta=$(date -d "$fecha -$tm_ant min" | cut -f 2- -d ' ') 	
+		date_prv=$(date +"%Y%m%d%H%M" -d "$fecha -$tm_prv min")
+		date_aft=$(date +"%Y%m%d%H%M" -d "$fecha +$tm_aft min") 
+		_hasta=$(date -d "$fecha -$tm_prv min" | cut -f 2- -d ' ') 	
 	else
 		# necesito sumar 1 día
-		day="tomorrow"
+		#day="tomorrow in "
 		fecha=$(date --date="$cuando" | cut -f 2- -d ' ')
 
-		date_ant=$(date +"%Y%m%d%H%M" -d "$fecha +1 day -$tm_ant min")
-		date_dsp=$(date +"%Y%m%d%H%M" -d "$fecha +1 day +$tm_dsp min")
-		_hasta=$(date -d "$fecha +1 day -$tm_ant min" | cut -d' ' -f2-)
+		date_prv=$(date +"%Y%m%d%H%M" -d "$fecha +1 day -$tm_prv min")
+		date_aft=$(date +"%Y%m%d%H%M" -d "$fecha +1 day +$tm_aft min")
+		_hasta=$(date -d "$fecha +1 day -$tm_prv min" | cut -d' ' -f2-)
 	fi
 
 
 	# Posibilito que la alarma se dispare antes
-	date_jst=$date_ant
+	date_jst=$date_prv
 
 	ahora=$(date +"%Y%m%d%H%M");
 	if [[ ! "$ahora" < "$date_jst" ]]; then
@@ -206,7 +225,7 @@ _alarm () {
 	diff=$(time_diff "$_ahora" "$_hasta")
 
 	#push "$_ahora ][ $_hasta"
-	push "Time to accomplish: $day in $diff"
+	push "Time to accomplish: ${day}$diff"
 
 	pid=$$
 	echo -e "$pid\t$_hasta\t${type//__/}\t$payload" >> /tmp/cronosq
@@ -223,7 +242,7 @@ daemon () {
 	while [[ "$ahora" < "$date_jst" ]]; do
 		ahora=$(date +"%Y%m%d%H%M")
 
-		if [[ ! "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_dsp" ]]; then  
+		if [[ ! "$ahora" < "$date_jst" ]] && [[ "$ahora" < "$date_aft" ]]; then  
 
 			case $type in
 				__COMMAND__)
