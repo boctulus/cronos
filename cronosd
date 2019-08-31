@@ -110,10 +110,7 @@ playsound () {
 	esac
 }
 
-_alarm () {
-	local cuando
-
-	when="$1"
+parse_time () {
 
 	echo "$when" | egrep '^NOW\b' >/dev/null 2>&1
 	if [[ $? -eq 0 ]]; then
@@ -127,10 +124,21 @@ _alarm () {
 
 		[[ $? -ne 0 ]] && { push "Error in time format !!!"; exit 1; } 
 	fi
+}
 
-	case $1 in
+_alarm () {
+	local cuando
+
+	#push "1 - $1"
+	#push "2 - $2"
+	#push "3 - $3"
+	#push "4 - $4"
+	#push "5 - $5"
+
+	case "$1" in
 		__COMMAND__)
 			type="$1"; shift
+			when="$1"; parse_time
 			[[ ${#when} -eq 5 ]] && cuando="$when" || cuando="0$when"
 			shift 2
 			payload="$@"
@@ -139,14 +147,16 @@ _alarm () {
 		;;
 		__SCRIPT__)
 			type="$1"; shift
+			when="$1"; parse_time
 			[[ ${#when} -eq 5 ]] && cuando="$when" || cuando="0$when"
-			shift 2
+			shift 
 			payload="$@"
 			#push "When: $cuando"
 			push "Script: script $payload"
 		;;
 		*)	
 			type="__ALARM__"
+			when="$1"; parse_time
 			[[ ${#when} -eq 5 ]] && cuando="$when" || cuando="0$when"
 			shift
 			
@@ -157,7 +167,7 @@ _alarm () {
 					shift 
 				;;
 			esac
-			
+
 			[[ "$1" == '-t' ]] || [[ "$1" == '--text' ]] && shift
 			payload="$@"
 			
@@ -169,6 +179,10 @@ _alarm () {
 	cuando=${cuando/24:/00:}
 	_ahora=$(date | cut -d' ' -f2-)
 	
+	#push "Type: $type"
+	#push "Cuando: $cuando"
+	#push "payload: $payload"
+	#exit #############################
 
 	# Hoy o mañana
 	day= 
