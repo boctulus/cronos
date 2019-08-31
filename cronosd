@@ -115,10 +115,6 @@ _alarm () {
 
 	when="$1"
 
-	if [[ "$when" == 'NOW' ]]; then
-		when=$(date +'%H:%M') 
-	fi	
-
 	echo "$when" | egrep '^NOW\b' >/dev/null 2>&1
 	if [[ $? -eq 0 ]]; then
 		when="${when/NOW /}"
