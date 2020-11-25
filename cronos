@@ -10,14 +10,17 @@ quit () {
 options () 
 {
 	help=$(cat <<-TEXT
+	CRONOS ${version} by @boctulus
 
-	$(basename $0) - schedule a task or create an alarm
+	Schedule a task or create an alarm
 
 	Usage:
 	
 	    $(basename $0) <time> <options> [-m] [-t] <text> 
 	    $(basename $0) <time> <options> -c <command> 
 	    $(basename $0) <time> <options> -f <script file> 
+
+	* Time format is HH:MM with 24 HS and AM / PM support
 
 	Options:
 
@@ -35,8 +38,36 @@ options ()
 
 	 -h, --help                     display this help
 	 -v, --version                  display version
+	 -C, --credits                  authors
+
+	Examples
+	
+	$(basename $0) 23:00 Watch TV
+	$(basename $0) 23:00 --mute Washing machine
+	$(basename $0) 6:00 PM buy something
+	$(basename $0) 'NOW +5 mins' Do it now
+	$(basename $0) 'NOW +2 hours +30 mins' some work
+	$(basename $0) '+1 day' Exam
+	$(basename $0) 23:45 -f some_script.sh 
+	$(basename $0) 10:30 -c some_command
+	$(basename $0) 12:15 -c 'command1 && command2'
+	$(basename $0) 12:15 -c 'command > output.txt'
+	 
+	* Time increments work with 'date' command format but up to +24 hours (for now)
+ 
 TEXT
 )
+
+	credits=$(cat <<-TEXT
+	Credits:
+	 
+	 Pablo Bozzolo <boctulus>
+	 Leonardo D'Ulivo <ldulivo>
+
+	 https://github.com/boctulus/linuxsolver
+
+TEXT
+)	
 
 	case "$1" in
 	-v|--version)
@@ -47,6 +78,10 @@ TEXT
 		echo -e "$help"
 		return
 		;;
+	-C|--credits)
+		echo -e "$credits"
+		return
+		;;		
 	[0-9][0-9]:[0-9][0-9]|[0-9]:[0-9][0-9]|NOW*|+[0-9]*)
 		residente="$base/cronosd"
 
